@@ -1,30 +1,3 @@
-
-Skip to content
-Navigation Menu
-
-    Comp-Labs
-
-    Download-macOS
-
-Code
-Issues 1
-Pull requests 1
-Discussions
-Actions
-Projects
-Security
-
-    Insights
-
-Generate macOS Installer
-Generate macOS Installer - Sonoma v14.4.1 ISO #2
-
-Jobs
-
-Run details
-
-Workflow file for this run
-.github/workflows/generate-installer.yml at 9885728
 name: Generate macOS Installer
 
 on:
@@ -71,10 +44,12 @@ jobs:
           string="${{ github.event.inputs.macos_version }}"
           echo "installer_version=${string//*v/}" >> $GITHUB_ENV
           echo "installer_name=${string// v*/}" >> $GITHUB_ENV
+
       # Download Installer
       - name: Download macOS Installer
         run: |
           softwareupdate --fetch-full-installer --full-installer-version ${{ env.installer_version }}
+
       # Generate Installer
       - if: github.event.inputs.file == 'dmg'
         name: Generate macOS DMG Installer
@@ -85,6 +60,7 @@ jobs:
           sudo /Applications/'Install macOS ${{ env.installer_name }}'.app/Contents/Resources/createinstallmedia --volume /Volumes/'${{ env.installer_name }}' --nointeraction
           hdiutil eject -force /Volumes/'Install macOS ${{ env.installer_name }}'
           sudo mv /tmp/'${{ env.installer_name }}'.dmg ~/Desktop/'${{ env.installer_name }}'.dmg
+
       - if: github.event.inputs.file == 'iso'
         name: Generate macOS ISO Installer
         run: |
@@ -98,16 +74,17 @@ jobs:
           hdiutil convert /tmp/'${{ env.installer_name }}'.dmg -format UDTO -o ~/Desktop/'${{ env.installer_name }}'
           mv -v ~/Desktop/'${{ env.installer_name }}'.cdr ~/Desktop/'${{ env.installer_name }}'.iso
           sudo rm -fv /tmp/'${{ env.installer_name }}'.dmg
+
       - if: github.event.inputs.file == 'zip'
         name: Generate macOS ZIP Installer
         run: |
           cd /Applications
           zip -r 'Install macOS ${{ env.installer_name }}.zip' 'Install macOS ${{ env.installer_name }}.app'
           mv -v 'Install macOS ${{ env.installer_name }}.zip' ~/Desktop/'${{ env.installer_name }}.zip'
+
       # Upload Installer
       - name: Upload ${{ github.event.inputs.file }}
         uses: actions/upload-artifact@v4
         with:
           name: macOS ${{ env.installer_name }}
           path: "~/Desktop/${{ env.installer_name }}.${{ github.event.inputs.file }}"
-Editing Download-macOS/.github/workflows/generate-installer.yml at main · Comp-Labs/Download-macOS
